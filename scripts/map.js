@@ -1,0 +1,241 @@
+const canvas = document.getElementById("map");
+const ctx = canvas.getContext("2d");
+const toggleNames = document.getElementById("toggleNames");
+const legendDiv = document.getElementById("legend");
+const coordsElem = document.getElementById("coords");
+const allianceInfoElem = document.getElementById("allianceInfo");
+
+function hashColor(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const hue = Math.abs(hash % 360);
+  return `hsl(${hue}, 70%, 60%)`;
+}
+
+let isDragging = false;
+let dragStart = { x: 0, y: 0 };
+let offset = { x: 0, y: 0 };
+let scale = 1;
+const scaleMin = 0.5;
+const scaleMax = 5;
+let playersGlobal = [];
+let allianceColors = {};
+// nu een Set voor geselecteerde alliances
+let selectedAlliances = new Set();
+
+function buildLegend(colors) {
+  legendDiv.innerHTML = "";
+  const keys = Object.keys(colors).sort((a, b) => {
+    return a.localeCompare(b);
+  });
+
+  for (const alliance of keys) {
+    const color = colors[alliance];
+    const item = document.createElement("label");
+    item.className = "legend-item";
+    item.style.cursor = "pointer";
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = selectedAlliances.has(alliance);
+    checkbox.style.cursor = "pointer";
+
+    checkbox.addEventListener("change", () => {
+      if (checkbox.checked) {
+        selectedAlliances.add(alliance);
+      } else {
+        selectedAlliances.delete(alliance);
+      }
+
+      const count = playersGlobal.filter((p) =>
+        selectedAlliances.has(p.alliance)
+      ).length;
+      allianceInfoElem.textContent = `Geselecteerd: ${selectedAlliances.size} alliances, ${count} leden`;
+
+      drawPlayersWithOffset(
+        playersGlobal,
+        offset.x,
+        offset.y,
+        toggleNames.checked,
+        scale
+      );
+    });
+
+    const colorBox = document.createElement("div");
+    colorBox.className = "color-box";
+    colorBox.style.background = color;
+
+    const textSpan = document.createElement("span");
+    textSpan.textContent = alliance;
+
+    item.appendChild(checkbox);
+    item.appendChild(colorBox);
+    item.appendChild(textSpan);
+    legendDiv.appendChild(item);
+  }
+}
+
+function drawPlayersWithOffset(
+  players,
+  offsetX,
+  offsetY,
+  showNames,
+  scaleFactor
+) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  allianceColors = {};
+
+  for (const p of players) {
+    if (!allianceColors[p.alliance]) {
+      allianceColors[p.alliance] = hashColor(p.alliance);
+    }
+  }
+
+  ctx.save();
+  ctx.translate(offsetX, offsetY);
+  ctx.scale(scaleFactor, scaleFactor);
+
+  for (const p of players) {
+    if (selectedAlliances.size > 0 && !selectedAlliances.has(p.alliance)) {
+      ctx.fillStyle = "#888";
+    } else {
+      ctx.fillStyle = allianceColors[p.alliance];
+    }
+
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
+    ctx.fill();
+
+    if (showNames || (!showNames && selectedAlliances.has(p.alliance))) {
+      ctx.fillStyle = "#fff";
+      ctx.font = `${12 / scaleFactor}px Arial`;
+      ctx.fillText(p.name, p.x + 8, p.y + 4);
+    }
+  }
+
+  ctx.restore();
+
+  buildLegend(allianceColors);
+}
+
+function drawPlayers(players) {
+  playersGlobal = players;
+  offset = { x: 0, y: 0 };
+  scale = 1;
+  selectedAlliances.clear();
+  toggleNames.checked = false;
+  allianceInfoElem.textContent = "Alliance: -";
+  drawPlayersWithOffset(
+    playersGlobal,
+    offset.x,
+    offset.y,
+    toggleNames.checked,
+    scale
+  );
+}
+
+document.getElementById("fileInput").addEventListener("change", function (e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    const lines = e.target.result
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean);
+    lines.shift();
+
+    const players = lines.map((line) => {
+      const [name, might, alliance, x, y] = line.split("|");
+      return {
+        name: name || "?",
+        alliance: alliance || "NoAlliance",
+        x: parseInt(x) * 2,
+        y: parseInt(y) * 2,
+      };
+    });
+
+    drawPlayers(players);
+  };
+  reader.readAsText(file);
+});
+
+canvas.addEventListener("mousedown", (e) => {
+  isDragging = true;
+  dragStart = { x: e.clientX, y: e.clientY };
+});
+
+canvas.addEventListener("mouseup", (e) => {
+  isDragging = false;
+});
+
+canvas.addEventListener("mouseleave", (e) => {
+  isDragging = false;
+});
+
+canvas.addEventListener("mousemove", (e) => {
+  if (isDragging) {
+    const dx = e.clientX - dragStart.x;
+    const dy = e.clientY - dragStart.y;
+    dragStart = { x: e.clientX, y: e.clientY };
+    offset.x += dx;
+    offset.y += dy;
+    drawPlayersWithOffset(
+      playersGlobal,
+      offset.x,
+      offset.y,
+      toggleNames.checked,
+      scale
+    );
+  }
+
+  const rect = canvas.getBoundingClientRect();
+  const mouseX = (e.clientX - rect.left - offset.x) / scale;
+  const mouseY = (e.clientY - rect.top - offset.y) / scale;
+
+  coordsElem.textContent = `Coords: (x: ${Math.round(mouseX)}, y: ${Math.round(
+    mouseY
+  )})`;
+});
+
+toggleNames.addEventListener("change", () => {
+  drawPlayersWithOffset(
+    playersGlobal,
+    offset.x,
+    offset.y,
+    toggleNames.checked,
+    scale
+  );
+});
+
+canvas.addEventListener(
+  "wheel",
+  (e) => {
+    e.preventDefault();
+
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    const wheel = e.deltaY < 0 ? 1.1 : 0.9;
+    let newScale = scale * wheel;
+    if (newScale < scaleMin) newScale = scaleMin;
+    if (newScale > scaleMax) newScale = scaleMax;
+
+    offset.x = mouseX - ((mouseX - offset.x) * newScale) / scale;
+    offset.y = mouseY - ((mouseY - offset.y) * newScale) / scale;
+    scale = newScale;
+
+    drawPlayersWithOffset(
+      playersGlobal,
+      offset.x,
+      offset.y,
+      toggleNames.checked,
+      scale
+    );
+  },
+  { passive: false }
+);

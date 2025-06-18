@@ -1,0 +1,29 @@
+body {
+  margin: 0;
+  font-family: sans-serif;
+  display: flex;
+  height: 100vh;
+  background: linear-gradient(to bottom, #3c92a6, #012738);
+
+  .content {
+    width: calc(80% - 20px);
+    height: calc(100% - 20px);
+    margin: 10px;
+    background-color: #0b4f6c;
+    color: white;
+    box-sizing: border-box;
+    text-align: center;
+    border-radius: 25px;
+
+    &.introduction {
+      padding: 10%;
+      h1 {
+        font-weight: 900;
+        font-size: 3.6rem;
+      }
+      p {
+        font-size: 1.6rem;
+      }
+    }
+  }
+}

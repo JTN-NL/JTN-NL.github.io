@@ -1,0 +1,59 @@
+canvas {
+  background: #02415d;
+  display: block;
+  margin: 20px auto;
+  border-radius: 5px;
+  cursor: grab;
+  width: 95%;
+}
+canvas:active {
+  cursor: grabbing;
+}
+#loadInfo {
+  margin-top: 10px;
+}
+#infoContainer {
+  margin-top: 10px;
+  font-family: monospace;
+  user-select: none;
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  color: white;
+}
+#settings {
+  margin: 10px auto;
+  width: 1600px;
+  text-align: left;
+  color: white;
+  font-size: 16px;
+}
+#legend {
+  margin: 10px auto;
+  width: 1600px;
+  background: #222;
+  border: 1px solid #444;
+  padding: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 15px;
+  color: white;
+  font-family: monospace;
+  user-select: none;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+}
+.color-box {
+  width: 18px;
+  height: 18px;
+  border: 1px solid #666;
+  flex-shrink: 0;
+}
+input[type="checkbox"] {
+  cursor: pointer;
+}
