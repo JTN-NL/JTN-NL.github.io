@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Gear Optimizer</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <h1>Gear Optimizer (Server JSON)</h1>
+
+  <div class="row">
+    <div class="card">
+      <h3>1) Load files</h3>
+
+      <label>Inventory JSON (server dump)</label>
+      <input id="invFile" type="file" accept=".json" />
+
+      <label>Maxima JSON (optional upload; otherwise uses ./maxima.json)</label>
+      <input id="maxFile" type="file" accept=".json" />
+      <div class="small">Parameter choice: defaulting to <code>./maxima.json</code> keeps usage simple on GitHub Pages.</div>
+
+      <label style="margin-top:10px;">
+        <input id="usePurity" type="checkbox" checked />
+        Scale by purity (value × purity/100)
+      </label>
+      <div class="small">Parameter choice: purity is 0–100 quality, so scaling makes 100% the best roll while keeping units consistent.</div>
+
+      <button id="parseBtn">Parse</button>
+    </div>
+
+    <div class="card">
+      <h3>2) Status</h3>
+      <pre id="status">Waiting for uploads…</pre>
+    </div>
+
+    <div class="card">
+      <h3>3) Preview (top 20 items by weighted score)</h3>
+      <pre id="preview">No data yet.</pre>
+      <div class="small">This is not the final optimizer — it’s just a quick “looks strong” preview using maxima weights.</div>
+    </div>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
