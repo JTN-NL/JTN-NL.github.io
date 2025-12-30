@@ -4,49 +4,244 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Gear Optimizer</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Goodgame Empire – Set Optimizer</title>
+    <link rel="stylesheet" href="./style.css" />
 </head>
 
 <body>
-    <h1>Gear Optimizer (Server JSON)</h1>
+    <a class="skip-link" href="#main">Skip to main content</a>
 
-    <div class="row">
-        <div class="card">
-            <h3>1) Load files</h3>
-
-            <label>Inventory JSON (server dump)</label>
-            <input id="invFile" type="file" accept=".json" />
-
-            <label>Filter: Commander / Castellan</label>
-            <select id="comFilter">
-                <option value="All">All</option>
-                <option value="Commander">Commander</option>
-                <option value="Castellan">Castellan</option>
-            </select>
-
-            <label style="margin-top:10px;">
-                <input id="usePurity" type="checkbox" checked />
-                Scale by purity (value × purity/100)
-            </label>
-
-            <button id="parseBtn">Parse</button>
+    <header class="topbar" role="banner">
+        <div class="topbar__left">
+            <h1 class="topbar__title">Goodgame Empire – Set Optimizer</h1>
+            <p class="topbar__subtitle">Static • Private • No IDs shown • Runs on GitHub Pages</p>
         </div>
 
-        <div class="card">
-            <h3>2) Status</h3>
-            <pre id="status">Waiting for uploads…</pre>
+        <div class="topbar__right" aria-label="Status indicators">
+            <div class="status">
+                <span class="status__label">Maxima</span>
+                <span id="statusMaxima" class="pill pill--warn" role="status" aria-live="polite">loading…</span>
+            </div>
+            <div class="status">
+                <span class="status__label">Inventory</span>
+                <span id="statusInv" class="pill pill--warn" role="status" aria-live="polite">not loaded</span>
+            </div>
+            <div class="status">
+                <span class="status__label">Items</span>
+                <span id="statusCount" class="pill" role="status" aria-live="polite">0</span>
+            </div>
         </div>
+    </header>
 
-        <div class="card">
-            <h3>3) Preview (top 20 items by weighted score)</h3>
-            <pre id="preview">No data yet.</pre>
-            <div class="small">This is not the final optimizer — it’s just a quick “looks strong” preview using maxima
-                weights.</div>
-        </div>
-    </div>
+    <main id="main" class="layout" role="main">
+        <section class="panel" aria-labelledby="invTitle">
+            <div class="panel__header">
+                <h2 id="invTitle">Inventory</h2>
+                <div class="panel__actions">
+                    <button id="btnReset" class="btn btn--ghost" type="button">Reset inventory</button>
+                </div>
+            </div>
+
+            <div class="errors" aria-label="Messages">
+                <div id="errorBox" class="errorBox" role="alert" aria-live="assertive" hidden></div>
+                <div id="infoBox" class="infoBox" role="status" aria-live="polite" hidden></div>
+            </div>
+
+            <div class="uploader">
+                <label class="file">
+                    <span class="file__label">Upload inventory JSON</span>
+                    <input id="fileInput" type="file" accept=".json,application/json" />
+                </label>
+                <p class="hint">
+                    Processed in-memory only. IDs are never shown or exported.
+                </p>
+            </div>
+
+            <div class="cards">
+                <div class="card">
+                    <h3>Counts</h3>
+                    <div class="countsGrid" aria-label="Counts summary">
+                        <div class="countItem">
+                            <div class="countItem__label">Total</div>
+                            <div id="countTotal" class="countItem__value">0</div>
+                        </div>
+                        <div class="countItem">
+                            <div class="countItem__label">Commander</div>
+                            <div id="countCommander" class="countItem__value">0</div>
+                        </div>
+                        <div class="countItem">
+                            <div class="countItem__label">Castellan</div>
+                            <div id="countCastellan" class="countItem__value">0</div>
+                        </div>
+                    </div>
+
+                    <details class="details">
+                        <summary>Counts by type</summary>
+                        <div id="countsByType" class="kvList" aria-label="Counts by item type"></div>
+                    </details>
+                </div>
+
+                <div class="card">
+                    <h3>Filters</h3>
+
+                    <fieldset class="fieldset">
+                        <legend>Side</legend>
+                        <div class="segmented" role="radiogroup" aria-label="Side filter">
+                            <label class="segmented__opt">
+                                <input type="radio" name="side" value="all" checked />
+                                <span>All</span>
+                            </label>
+                            <label class="segmented__opt">
+                                <input type="radio" name="side" value="Commander" />
+                                <span>Commander</span>
+                            </label>
+                            <label class="segmented__opt">
+                                <input type="radio" name="side" value="Castellan" />
+                                <span>Castellan</span>
+                            </label>
+                        </div>
+                    </fieldset>
+
+                    <fieldset class="fieldset">
+                        <legend>Item types</legend>
+                        <div id="typeChecks" class="checks" aria-label="Item type filter">
+                            <!-- injected -->
+                        </div>
+                    </fieldset>
+
+                    <div class="row">
+                        <label class="toggle">
+                            <input id="favOnly" type="checkbox" />
+                            <span>Favorites only</span>
+                        </label>
+                    </div>
+
+                    <div class="row">
+                        <label class="label" for="searchBox">Search effects</label>
+                        <input id="searchBox" class="input" type="search"
+                            placeholder="e.g. wall protection, melee, samurai" />
+                        <p class="hint">Matches effect names (unknown codes show as “Unknown effect (CODE)”).</p>
+                    </div>
+
+                    <div class="row row--inline">
+                        <button id="btnApply" class="btn" type="button">Apply filters</button>
+                        <button id="btnClearFilters" class="btn btn--ghost" type="button">Clear</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Item list</h3>
+
+                    <div class="listMeta">
+                        <div>
+                            <strong id="shownCount">0</strong> shown
+                            <span class="muted">/ <span id="filteredCount">0</span> filtered</span>
+                        </div>
+
+                        <div class="pager" aria-label="Pagination">
+                            <button id="btnPrev" class="btn btn--ghost" type="button">Prev</button>
+                            <span class="pager__info">
+                                Page <strong id="pageNow">1</strong> / <strong id="pageTotal">1</strong>
+                            </span>
+                            <button id="btnNext" class="btn btn--ghost" type="button">Next</button>
+                        </div>
+                    </div>
+
+                    <div id="list" class="list" role="list" aria-label="Inventory items (paginated)"></div>
+
+                    <p class="hint">
+                        Rendering is paginated (50/page) to stay fast with thousands of items.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel" aria-labelledby="optTitle">
+            <div class="panel__header">
+                <h2 id="optTitle">Optimizer (MVP)</h2>
+                <div class="panel__actions">
+                    <button id="btnExport" class="btn" type="button" disabled>Export result</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Target metric</h3>
+                <p class="hint">
+                    Loaded from <code>maxima.json</code> keys when possible. If the structure is not a plain object,
+                    the UI falls back to a safe “key explorer”.
+                </p>
+
+                <div class="row">
+                    <label class="label" for="targetSelect">Choose target</label>
+                    <select id="targetSelect" class="select" disabled></select>
+                </div>
+
+                <details class="details">
+                    <summary>Maxima keys (debug)</summary>
+                    <textarea id="maximaKeys" class="textarea" rows="8" readonly></textarea>
+                </details>
+
+                <div class="row row--inline">
+                    <button id="btnCompute" class="btn" type="button" disabled>Compute best sets</button>
+                    <button id="btnRecomputeQuick" class="btn btn--ghost" type="button" disabled>Recompute (same
+                        target)</button>
+                </div>
+
+                <div id="optWarnings" class="warnBox" role="status" aria-live="polite" hidden></div>
+            </div>
+
+            <div class="grid2">
+                <div class="card">
+                    <h3>Commander set</h3>
+                    <div id="resultCommander" class="result" aria-label="Commander optimizer result">
+                        <p class="muted">No result yet.</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Castellan set</h3>
+                    <div id="resultCastellan" class="result" aria-label="Castellan optimizer result">
+                        <p class="muted">No result yet.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer" role="contentinfo">
+        <p>
+            Tip: This site is fully static. Open <code>index.html</code> locally or host it on GitHub Pages.
+        </p>
+    </footer>
 
     <script src="./app.js"></script>
+
+    <!--
+  SAMPLE INVENTORY SNIPPET (for quick testing)
+  Save as sample.json and upload it:
+
+  {
+    "I": [
+      [
+        489950016,
+        2,
+        1,
+        5,
+        -1,
+        [
+          [10005, 72, [85.6]],
+          [10006, 80, [86.0]],
+          [10109, 87, [34.1]],
+          [10111, 73, [37.2]]
+        ],
+        -1,
+        -1,
+        0,
+        1
+      ]
+    ]
+  }
+  -->
 </body>
 
 </html>
