@@ -31,18 +31,150 @@ const ComOfBV = {
   Example placeholders (replace with your full object):
 */
 const Effects = {
-  10005: "wall protection",
-  10006: "gate protection",
-  10109: "melee unit strength when attacking",
-  10111: "range unit strength when attacking",
-  3: "wall protection",
-  4: "gate protection",
-  108: "melee unit strength when attacking",
-  109: "range unit strength when attacking",
-  110: "wall protection",
-  111: "gate protection",
-  112: "moat protection",
-  114: "resources plundered when looting",
+    //Commander
+    1: "melee unit strength when attacking",
+    2: "range unit strength when attacking",
+    3: "wall protection",
+    4: "gate protection",
+    5: "moat protection",
+    6: "army travel speed",
+    7: "resources plundered when looting",
+    106: "army travel speed",
+    108: "melee unit strength when attacking",
+    109: "range unit strength when attacking",
+    110: "wall protection",
+    111: "gate protection",
+    112: "moat protection",
+    113: "army travel speed",
+    114: "resources plundered when looting",
+    115: "flank unit limit when attacking",
+    116: "strength in courtyard when attacking",
+    117: "unit limit on the front",
+    118: "combat strength when attacking",
+    119: "combat strength of units when attacking the front",
+    120: "combat strength of units when attacking the flanks",
+    121: "get supported by shield maiden in courtyard",
+
+
+    //Sets
+    231: "combat strength when attacking main castles, kingdom castles, and foreign castles",
+    232: "combat strength when attacking outposts, capitals, and trading metropolises",
+
+    //NOMS
+    407: "wall protection of normad targets",
+    408: "gate protection of normad targets",
+
+    411: "flank unit limit when attacking normad targets",
+
+    413: "unit limit on the front when attacking when normad targets",
+
+
+    //SAM
+    507: "wall protection of samurai targets",
+    508: "gate protection of samurai targets",
+    509: "melee unit strength when attacking samurai targets",
+    510: "range unit strength when attacking samurai targets", 
+    511: "flank unit limit when attacking samurai targets",
+    512: "strength in courtyard of samurai targets",
+    513: "unit limit on the front when attacking when samurai targets",
+    514: "enemy moat protection when attacking samurai camps",
+    515: "samurai tokens earned when samurai camps",
+
+
+    //Beri
+    702: "flank unit amount when attacking Berimond targets",
+    705: "gate protection of Berimond targets",
+    706: "strength in courtyard of Berimond targets",
+
+    //Castle lord
+    806: "later army detection when attacking castle lords",
+    807: "moat protection of castle lords",
+    808: "wall protection of castle lords",
+    809: "gate protection of castle lords",
+    810: "strength in courtyard of castle lords",
+    811: "flank unit limit when attacking castle lords",
+    812: "unit limit on the front when attacking enemy castle lords",
+    813: "melee unit strength when attacking castle lords",
+    814: "range unit strength when attacking castle lords",
+    815: "fire damage inflicted when attacking enemy castle lords",
+    816: "glory earned when attacking enemy castle lords",
+
+    //unit & tool effects
+    20002: "horror units strength when attacking",
+    20008: "horror loot capacity",
+    20012: "royal & elite units strength when attacking",
+    20013: "horror units strength when attacking",
+    20014: "imperial strength when attacking",
+    20015: "beserker & spear woman strength when attacking",
+    20016: "relic unit strength when attacking",
+    20017: "attack strength for mead units when attacking",
+    20018: "additional wave",
+    20019: "attack cooldown after victory",
+    20020: "army return travel speed",
+
+
+
+    // Castellan
+    10001: "resources lost after being looted",
+    10002: "wall protection",
+    10003: "gate protection",
+    10004: "moat protection",
+    10005: "melee unit strength when defending",
+    10006: "range unit strength when defending",
+
+    10107: "resources lost after being looted",
+    10108: "wall protection",
+    10109: "gate protection",
+    10110: "moat protection",
+    10111: "melee unit strength when defending",
+    10112: "range unit strength when defending",
+    10113: "wall unit limit when defending",
+    10114: "strength in courtyard when defending",
+    10115: "combat strength for defense units",
+    10116: "combat strength for defense units of the front",
+    10117: "combat strength for defense units of the flanks",
+    10118: "get supported by protectors of the north in courtyard defense",
+    
+
+
+    10406: "strength when defending main castle and townships",
+
+    //NPC
+    10407: "strength for units stationed in outposts & landmarks",
+    10411: "melee unit strength when defending against NPC targets",
+    10412: "range unit strength when defending against NPC targets",
+    10413: "wall unit limit when defending against NPC targets",
+    10414: "strength in courtyard when defending against NPC targets",
+    10415: "resources lost after being looted",
+    10418: "resources lost after being looted",
+
+    //Castle lord
+    10507: "strength when defending main castle",
+    10508: "strength for units stationed in outposts & landmarks",
+    10509: "earlier attack warning when defending against castle lords",
+    10510: "moat protection against castle lords",
+    10511: "wall protection against castle lords",
+    10512: "gate protection against castle lords",
+    10513: "melee unit strength when defending against castle lords",
+    10514: "range unit strength when defending against castle lords",
+    10515: "wall unit limit when defending against castle lords",
+    10516: "strength in courtyard when defending against castle lords",
+    10517: "fire damage after attack from enemy castle lords",
+    10518: "glory when defending against enemy castle lords",
+
+
+    30009: "recruitment speed",
+    30010: "hospital space",
+    30011: "construction speed",
+    30012: "base resource production bonus",
+    30013: "base kingdom resources production bonus",
+    30014: "public order bonus",
+    30015: "research boost",
+    30016: "resource transport capacity",
+    30017: "mead production increase in castle",
+    30018: "honey production increase in castle",
+    30019: "mead storage capacity in castle",
+    30020: "honey storage capacity in castle",
 };
 
 /* ------------------------ CONFIG (explained) ------------------------ */
@@ -76,7 +208,6 @@ const state = {
   filters: {
     side: "all",              // "all" | "Commander" | "Castellan"
     types: new Set(Object.values(ItemType)), // typeName set
-    favoritesOnly: false,
     search: "",
   },
 
@@ -315,8 +446,6 @@ function normalizeInventory(json) {
     const typeName = ItemType[typeId] || `Unknown type (${typeId || "?"})`;
     const sideName = ComOfBV[sideId] || `Unknown side (${sideId || "?"})`;
 
-    const favorited = Boolean(row[9]);
-
     const effectsRaw = row[5];
     const effects = [];
     if (Array.isArray(effectsRaw)) {
@@ -337,7 +466,6 @@ function normalizeInventory(json) {
       typeName,
       sideId,
       sideName,
-      favorited,
       effects,
     });
   }
@@ -363,7 +491,6 @@ function applyFilters() {
   for (const it of state.items) {
     if (side !== "all" && it.sideName !== side) continue;
     if (!types.has(it.typeName)) continue;
-    if (favoritesOnly && !it.favorited) continue;
 
     if (q) {
       // Search within effect names
@@ -484,13 +611,6 @@ function renderItemRow(it) {
 
   badges.appendChild(bType);
   badges.appendChild(bSide);
-
-  if (it.favorited) {
-    const bFav = document.createElement("span");
-    bFav.className = "badge";
-    bFav.textContent = "Favorited";
-    badges.appendChild(bFav);
-  }
 
   const details = document.createElement("details");
   details.className = "details";
@@ -946,7 +1066,6 @@ function clearFiltersToDefault() {
 
   // reflect UI
   document.querySelector('input[name="side"][value="all"]').checked = true;
-  dom.favOnly.checked = false;
   dom.searchBox.value = "";
 
   // type checks
@@ -1030,7 +1149,6 @@ function wireEvents() {
 
   dom.btnApply.addEventListener("click", () => {
     readSideFilter();
-    state.filters.favoritesOnly = dom.favOnly.checked;
     state.filters.search = dom.searchBox.value || "";
     applyFilters();
   });
